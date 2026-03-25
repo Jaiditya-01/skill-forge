@@ -47,15 +47,20 @@ async def sync_profiles(current_user: User = Depends(get_current_user)):
         github_commits=github["commits"],
         github_contributions=github.get("contributions", 0),
         github_languages=github.get("languages", {}),
+        github_daily=github.get("daily", {}),
         leetcode_solved=leetcode["solved"],
         leetcode_easy=leetcode["easy"],
         leetcode_medium=leetcode["medium"],
         leetcode_hard=leetcode["hard"],
         leetcode_rating=leetcode["rating"],
+        leetcode_daily=leetcode.get("daily", {}),
         codeforces_solved=codeforces["solved"],
         codeforces_rating=codeforces["rating"],
+        codeforces_daily=codeforces.get("daily", {}),
+        codeforces_problem_ratings=codeforces.get("problem_ratings", {}),
         codechef_solved=codechef["solved"],
         codechef_rating=codechef["rating"],
+        codechef_daily=codechef.get("daily", {})
     )
     await metrics.insert()
 
@@ -115,3 +120,101 @@ async def get_metrics(
         }
         for m in metrics
     ])
+
+
+@router.get("/unified-metrics", response_model=SuccessResponse)
+async def get_unified_metrics(
+    days: int = 30,
+    current_user: User = Depends(get_current_user),
+):
+    """Get unified platform metrics structure."""
+    profile = await UserProfile.find_one(UserProfile.user_id == current_user.id)
+    if not profile:
+        return SuccessResponse(data=[])
+
+    metrics = await PlatformMetrics.find(
+        PlatformMetrics.user_id == current_user.id
+    ).sort("date").limit(days).to_list()  # Sort ascending for chronological activity
+
+    # If no metrics, return empty
+    if not len(metrics):
+        latest = None
+    else:
+        latest = metrics[-1]
+
+    unified_data = []
+    # Setup 30 day date window ending today
+    from datetime import datetime, timedelta
+    today = datetime.utcnow()
+    date_strs = []
+    for i in range(days - 1, -1, -1):
+        d = today - timedelta(days=i)
+        date_strs.append(d.strftime("%Y-%m-%d"))
+
+    # 1. LeetCode
+    lc_activity = []
+    lc_daily = latest.leetcode_daily if latest else {}
+    for d_str in date_strs:
+        lc_activity.append({"date": d_str, "value": lc_daily.get(d_str, 0)})
+        
+    unified_data.append({
+        "platform": "LeetCode",
+        "username": profile.leetcode_username,
+        "maxRating": latest.leetcode_rating if latest else 0,
+        "problemsSolved": {
+            "Easy": latest.leetcode_easy if latest else 0,
+            "Medium": latest.leetcode_medium if latest else 0,
+            "Hard": latest.leetcode_hard if latest else 0
+        },
+        "activity": lc_activity
+    })
+
+    # 2. Codeforces
+    cf_activity = []
+    cf_daily = latest.codeforces_daily if latest else {}
+    for d_str in date_strs:
+        cf_activity.append({"date": d_str, "value": cf_daily.get(d_str, 0)})
+        
+    unified_data.append({
+        "platform": "Codeforces",
+        "username": profile.codeforces_username,
+        "maxRating": latest.codeforces_rating if latest else 0,
+        "problemsSolved": latest.codeforces_problem_ratings if latest else {},
+        "activity": cf_activity
+    })
+
+    # 3. CodeChef
+    cc_activity = []
+    cc_daily = latest.codechef_daily if latest else {}
+    for d_str in date_strs:
+        cc_activity.append({"date": d_str, "value": cc_daily.get(d_str, 0)})
+        
+    unified_data.append({
+        "platform": "CodeChef",
+        "username": profile.codechef_username,
+        "maxRating": latest.codechef_rating if latest else 0,
+        "problemsSolved": {
+            "Total": latest.codechef_solved if latest else 0 
+        },
+        "activity": cc_activity
+    })
+
+    # 4. GitHub
+    gh_activity = []
+    gh_daily = latest.github_daily if latest else {}
+    for d_str in date_strs:
+        gh_activity.append({"date": d_str, "value": gh_daily.get(d_str, 0)})
+
+    unified_data.append({
+        "platform": "GitHub",
+        "username": profile.github_username,
+        "maxRating": 0, # not applicable
+        "problemsSolved": {
+            "Contributions": latest.github_contributions if latest else 0 
+        },
+        "languages": latest.github_languages if latest else {},
+        "activity": gh_activity
+    })
+
+    return SuccessResponse(data=unified_data)
+

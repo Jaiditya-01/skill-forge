@@ -46,16 +46,30 @@ async def fetch_github_stats(username: str) -> dict:
                 )
                 result["commits"] = commits
 
-            # Fetch contribution count from profile page (approximation)
+            # Fetch accurate daily contributions from profile graph
             resp = await client.get(
                 f"https://github.com/users/{username}/contributions",
-                headers={"Accept": "text/html"},
+                headers={"Accept": "text/html", "User-Agent": "Mozilla/5.0"},
             )
+            daily_counts = {}
             if resp.status_code == 200:
-                # Count data-count attributes in contribution graph
                 import re
-                counts = re.findall(r'data-count="(\d+)"', resp.text)
-                result["contributions"] = sum(int(c) for c in counts)
+                html = resp.text
+                tds = re.findall(r'data-date="([^"]+)"\s+id="([^"]+)"', html)
+                date_map = {id_: date for date, id_ in tds}
+                tooltips = re.findall(r'<tool-tip[^>]+for="([^"]+)"[^>]*>\s*(.*?)\s*</tool-tip>', html)
+                
+                for tooltip_id, text in tooltips:
+                    if tooltip_id in date_map:
+                        date = date_map[tooltip_id]
+                        m = re.search(r'^([\d,]+|No)\s+contribution', text)
+                        if m:
+                            val = m.group(1)
+                            daily_counts[date] = 0 if val == 'No' else int(val.replace(',', ''))
+                
+                result["contributions"] = sum(daily_counts.values())
+            
+            result["daily"] = daily_counts
 
         except Exception as e:
             print(f"[GitHub API Error] {username}: {e}")
@@ -66,10 +80,13 @@ async def fetch_github_stats(username: str) -> dict:
 async def fetch_leetcode_stats(username: str) -> dict:
     """Fetch LeetCode stats using GraphQL API."""
     if not username:
-        return {"solved": 0, "easy": 0, "medium": 0, "hard": 0, "rating": 0}
+        return {"solved": 0, "easy": 0, "medium": 0, "hard": 0, "rating": 0, "daily": {}}
+
+    import json
+    from datetime import datetime
 
     query = """
-    query getUserProfile($username: String!) {
+    query getUserProfile($username: String!, $year: Int) {
         matchedUser(username: $username) {
             submitStatsGlobal {
                 acSubmissionNum {
@@ -77,41 +94,62 @@ async def fetch_leetcode_stats(username: str) -> dict:
                     count
                 }
             }
-            profile {
-                ranking
+            userCalendar(year: $year) {
+                submissionCalendar
             }
+        }
+        userContestRanking(username: $username) {
+            rating
         }
     }
     """
 
-    result = {"solved": 0, "easy": 0, "medium": 0, "hard": 0, "rating": 0}
+    result = {"solved": 0, "easy": 0, "medium": 0, "hard": 0, "rating": 0, "daily": {}}
 
     async with httpx.AsyncClient(timeout=15.0) as client:
         try:
+            current_year = datetime.utcnow().year
             resp = await client.post(
                 "https://leetcode.com/graphql",
-                json={"query": query, "variables": {"username": username}},
+                json={"query": query, "variables": {"username": username, "year": current_year}},
                 headers={"Content-Type": "application/json", "Referer": "https://leetcode.com"},
             )
             if resp.status_code == 200:
                 data = resp.json()
-                user_data = data.get("data", {}).get("matchedUser", {})
-                if user_data:
-                    submissions = user_data.get("submitStatsGlobal", {}).get("acSubmissionNum", [])
-                    for s in submissions:
-                        diff = s.get("difficulty", "")
-                        count = s.get("count", 0)
-                        if diff == "All":
-                            result["solved"] = count
-                        elif diff == "Easy":
-                            result["easy"] = count
-                        elif diff == "Medium":
-                            result["medium"] = count
-                        elif diff == "Hard":
-                            result["hard"] = count
+                data_payload = data.get("data", {})
+                user_data = data_payload.get("matchedUser") or {}
+                
+                # Submissions by difficulty
+                submissions = user_data.get("submitStatsGlobal", {}).get("acSubmissionNum", [])
+                for s in submissions:
+                    diff = s.get("difficulty", "")
+                    count = s.get("count", 0)
+                    if diff == "All":
+                        result["solved"] = count
+                    elif diff == "Easy":
+                        result["easy"] = count
+                    elif diff == "Medium":
+                        result["medium"] = count
+                    elif diff == "Hard":
+                        result["hard"] = count
 
-                    ranking = user_data.get("profile", {}).get("ranking", 0)
-                    result["rating"] = ranking or 0
+                # Contest Rating
+                contest_data = data_payload.get("userContestRanking") or {}
+                result["rating"] = int(contest_data.get("rating", 0))
+
+                # Daily History
+                daily_counts = {}
+                calendar_str = user_data.get("userCalendar", {}).get("submissionCalendar", "{}")
+                try:
+                    calendar_data = json.loads(calendar_str)
+                    for ts_str, count in calendar_data.items():
+                        ts = int(ts_str)
+                        date_str = datetime.utcfromtimestamp(ts).strftime('%Y-%m-%d')
+                        daily_counts[date_str] = daily_counts.get(date_str, 0) + count
+                except Exception:
+                    pass
+                result["daily"] = daily_counts
+
         except Exception as e:
             print(f"[LeetCode API Error] {username}: {e}")
 
@@ -121,9 +159,10 @@ async def fetch_leetcode_stats(username: str) -> dict:
 async def fetch_codeforces_stats(username: str) -> dict:
     """Fetch Codeforces stats using public API."""
     if not username:
-        return {"solved": 0, "rating": 0}
+        return {"solved": 0, "rating": 0, "problem_ratings": {}, "daily": {}}
 
-    result = {"solved": 0, "rating": 0}
+    from datetime import datetime
+    result = {"solved": 0, "rating": 0, "problem_ratings": {}, "daily": {}}
 
     async with httpx.AsyncClient(timeout=15.0) as client:
         try:
@@ -135,9 +174,9 @@ async def fetch_codeforces_stats(username: str) -> dict:
                 data = resp.json()
                 if data.get("status") == "OK" and data.get("result"):
                     user_info = data["result"][0]
-                    result["rating"] = user_info.get("rating", 0)
+                    result["rating"] = user_info.get("rating", 0) or 0
 
-            # User submissions for problem count
+            # User submissions for problem count, difficulty, and daily history
             resp = await client.get(
                 f"https://codeforces.com/api/user.status?handle={username}&from=1&count=10000"
             )
@@ -145,13 +184,41 @@ async def fetch_codeforces_stats(username: str) -> dict:
                 data = resp.json()
                 if data.get("status") == "OK":
                     submissions = data.get("result", [])
+                    
                     solved_problems = set()
+                    problem_ratings = {}
+                    daily_counts = {}
+
                     for sub in submissions:
+                        # Only count OK verdicts
                         if sub.get("verdict") == "OK":
                             problem = sub.get("problem", {})
                             problem_id = f"{problem.get('contestId', '')}{problem.get('index', '')}"
-                            solved_problems.add(problem_id)
+                            
+                            # Keep track of unique solved problems for difficulty buckets
+                            if problem_id not in solved_problems:
+                                solved_problems.add(problem_id)
+                                rating = problem.get("rating")
+                                if rating:
+                                    r_str = str(rating)
+                                    problem_ratings[r_str] = problem_ratings.get(r_str, 0) + 1
+                                else:
+                                    problem_ratings["Unrated"] = problem_ratings.get("Unrated", 0) + 1
+                            
+                            # Track daily submissions (all passing submissions or maybe all submissions? Let's use all passing as "activity" for now, or just all submissions)
+                            # Actually, GitHub provides all contributions, Leetcode provides all submissions.
+                            # So let's count *all* submissions, not just OK, for activity.
+                            
+                        # Activity tracking (track all submissions, like leetcode does)
+                        ts = sub.get("creationTimeSeconds")
+                        if ts:
+                            date_str = datetime.utcfromtimestamp(ts).strftime('%Y-%m-%d')
+                            daily_counts[date_str] = daily_counts.get(date_str, 0) + 1
+
                     result["solved"] = len(solved_problems)
+                    result["problem_ratings"] = problem_ratings
+                    result["daily"] = daily_counts
+
         except Exception as e:
             print(f"[Codeforces API Error] {username}: {e}")
 

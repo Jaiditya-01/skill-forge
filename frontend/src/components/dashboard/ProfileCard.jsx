@@ -1,6 +1,92 @@
-import { Globe as Github, Code, Trophy, Target } from 'lucide-react';
+import { useState } from 'react';
+import { Globe as Github, Code, Trophy, Target, LayoutGrid } from 'lucide-react';
 
-const ProfileCard = ({ user, stats, profile }) => {
+const platformIcons = {
+  GitHub: Github,
+  LeetCode: Code,
+  Codeforces: Trophy,
+  CodeChef: LayoutGrid
+};
+
+const platformColors = {
+  GitHub: 'text-gray-300',
+  LeetCode: 'text-yellow-500',
+  Codeforces: 'text-blue-400',
+  CodeChef: 'text-orange-400'
+};
+
+const PlatformCard = ({ platformData }) => {
+  const [isHovered, setIsHovered] = useState(false);
+  
+  const { platform, username, maxRating, problemsSolved } = platformData;
+  const Icon = platformIcons[platform] || Code;
+  const iconColor = platformColors[platform] || 'text-white';
+  
+  // Choose what to show as the "solved" metric based on platform
+  let metricLabel = "Solved";
+  let metricValue = 0;
+  
+  if (platform === 'GitHub') {
+    metricLabel = "Contributions";
+    metricValue = problemsSolved?.Contributions || 0;
+  } else if (platform === 'LeetCode') {
+    metricValue = (problemsSolved?.Easy || 0) + (problemsSolved?.Medium || 0) + (problemsSolved?.Hard || 0);
+  } else if (platform === 'Codeforces') {
+    metricValue = Object.values(problemsSolved || {}).reduce((a, b) => a + b, 0);
+  } else if (platform === 'CodeChef') {
+    metricValue = problemsSolved?.Total || 0;
+  }
+
+  return (
+    <div 
+      className="relative w-full h-14 perspective-1000 cursor-pointer"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      style={{ perspective: '1000px' }}
+    >
+      <div 
+        className="w-full h-full transition-transform duration-500 rounded-lg relative"
+        style={{ 
+          transformStyle: 'preserve-3d',
+          transform: isHovered ? 'rotateX(180deg)' : 'rotateX(0deg)'
+        }}
+      >
+        {/* Front */}
+        <div 
+          className="absolute w-full h-full flex items-center justify-between p-3 bg-white/5 border border-white/5 rounded-lg backface-hidden"
+          style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}
+        >
+          <div className="flex items-center space-x-3">
+            <Icon className={`w-5 h-5 ${iconColor}`} />
+            <span className="text-sm font-medium text-gray-300">{platform}</span>
+          </div>
+          <span className="text-sm font-bold text-gray-100">
+            {maxRating > 0 ? `Max Rating: ${maxRating}` : 'Connected'}
+          </span>
+        </div>
+        
+        {/* Back */}
+        <div 
+          className="absolute w-full h-full flex items-center justify-between p-3 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 border border-purple-500/30 rounded-lg backface-hidden"
+          style={{ 
+            backfaceVisibility: 'hidden', 
+            WebkitBackfaceVisibility: 'hidden',
+            transform: 'rotateX(180deg)'
+          }}
+        >
+          <span className="text-sm font-semibold text-white truncate max-w-[120px]">
+            {username}
+          </span>
+          <span className="text-xs text-purple-200 bg-purple-500/20 px-2 py-0.5 rounded-full">
+            {metricValue} {metricLabel}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const ProfileCard = ({ user, stats, profile, unifiedMetrics }) => {
   return (
     <div className="glass-card flex flex-col items-center justify-center p-8 relative overflow-hidden h-full">
       {/* Dynamic background glow based on level */}
@@ -41,36 +127,16 @@ const ProfileCard = ({ user, stats, profile }) => {
       </div>
 
       {/* Platform handles */}
-      <div className="w-full space-y-3">
-        <div className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/5 hover:border-white/10 transition-colors">
-          <div className="flex items-center space-x-3">
-            <Github className="w-5 h-5 text-gray-300" />
-            <span className="text-sm font-medium text-gray-300">GitHub</span>
+      <div className="w-full space-y-3 mt-2">
+        {(!unifiedMetrics || unifiedMetrics.length === 0) ? (
+          <div className="text-center text-sm text-gray-500 py-4">
+            No platforms linked yet. Go to Settings!
           </div>
-          <span className="text-sm text-gray-400 truncate max-w-[120px]">
-            {profile?.github_username || 'Not linked'}
-          </span>
-        </div>
-        
-        <div className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/5 hover:border-white/10 transition-colors">
-          <div className="flex items-center space-x-3">
-            <Code className="w-5 h-5 text-yellow-500" />
-            <span className="text-sm font-medium text-gray-300">LeetCode</span>
-          </div>
-          <span className="text-sm text-gray-400 truncate max-w-[120px]">
-            {profile?.leetcode_username || 'Not linked'}
-          </span>
-        </div>
-
-        <div className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/5 hover:border-white/10 transition-colors">
-          <div className="flex items-center space-x-3">
-            <Trophy className="w-5 h-5 text-blue-400" />
-            <span className="text-sm font-medium text-gray-300">Codeforces</span>
-          </div>
-          <span className="text-sm text-gray-400 truncate max-w-[120px]">
-            {profile?.codeforces_username || 'Not linked'}
-          </span>
-        </div>
+        ) : (
+          unifiedMetrics.map(p => (
+            <PlatformCard key={p.platform} platformData={p} />
+          ))
+        )}
       </div>
     </div>
   );

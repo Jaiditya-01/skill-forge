@@ -8,30 +8,67 @@ import {
   Tooltip
 } from 'recharts';
 
-const SkillRadar = ({ skills }) => {
-  // Process skills into format expected by Recharts
-  // Ensure we have at least 3 points for a radar chart
-  const defaultData = [
-    { subject: 'Algorithms', score: 20, fullMark: 100 },
-    { subject: 'Data Structs', score: 30, fullMark: 100 },
-    { subject: 'Frontend', score: 10, fullMark: 100 },
-    { subject: 'Backend', score: 15, fullMark: 100 },
-    { subject: 'Databases', score: 25, fullMark: 100 },
-  ];
+const SkillRadar = ({ unifiedMetrics }) => {
+  // Compute real-time proficiency from unifiedMetrics
+  // Easy=1x, Medium=2x, Hard=3x
+  // Max expected score per platform for 100%: 
+  // Let's say 1000 weighted points = 100% proficiency for a category.
+  const MAX_POINTS = 500;
 
   let rawData = [];
-  
-  if (skills && skills.length > 0) {
-    rawData = skills.map(s => ({
-      subject: s.skill_name.length > 12 ? s.skill_name.substring(0, 10) + '..' : s.skill_name,
-      score: s.proficiency_score,
-      fullMark: 100,
-      category: s.category
-    }));
+
+  if (unifiedMetrics && unifiedMetrics.length > 0) {
+    rawData = unifiedMetrics.map(platformData => {
+      let weightedScore = 0;
+      
+      if (platformData.platform === 'LeetCode') {
+        const easy = platformData.problemsSolved?.Easy || 0;
+        const medium = platformData.problemsSolved?.Medium || 0;
+        const hard = platformData.problemsSolved?.Hard || 0;
+        weightedScore = (easy * 1) + (medium * 2) + (hard * 3);
+      } else if (platformData.platform === 'Codeforces') {
+        // e.g. 800-1100 -> Easy (1x), 1200-1500 -> Med (2x), 1600+ -> Hard (3x)
+        Object.entries(platformData.problemsSolved || {}).forEach(([ratingStr, count]) => {
+          const rating = parseInt(ratingStr);
+          if (isNaN(rating)) {
+             weightedScore += count * 2; // Unrated
+          } else if (rating <= 1100) {
+             weightedScore += count * 1;
+          } else if (rating <= 1500) {
+             weightedScore += count * 2;
+          } else {
+             weightedScore += count * 3;
+          }
+        });
+      } else if (platformData.platform === 'GitHub') {
+        weightedScore = (platformData.problemsSolved?.Contributions || 0) * 0.5; // Scale down
+      } else if (platformData.platform === 'CodeChef') {
+        weightedScore = (platformData.problemsSolved?.Total || 0) * 2;
+      }
+
+      const normalizedScore = Math.min(100, Math.round((weightedScore / MAX_POINTS) * 100));
+      
+      return {
+        subject: platformData.platform,
+        score: normalizedScore,
+        fullMark: 100,
+        rawPoints: Math.round(weightedScore)
+      };
+    });
   }
 
-  // If we don't have enough skills for a good radar chart (need >=3), augment with empty ones
-  const data = rawData.length >= 3 ? rawData : [...rawData, ...defaultData.slice(rawData.length, 5)];
+  const defaultData = [
+    { subject: 'LeetCode', score: 0, fullMark: 100 },
+    { subject: 'Codeforces', score: 0, fullMark: 100 },
+    { subject: 'GitHub', score: 0, fullMark: 100 },
+    { subject: 'CodeChef', score: 0, fullMark: 100 }
+  ];
+
+  // If no accurate data yet, use placeholder default framework
+  const data = rawData.length >= 3 ? rawData : defaultData.map(d => {
+    const existing = rawData.find(r => r.subject === d.subject);
+    return existing || d;
+  });
 
   const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {

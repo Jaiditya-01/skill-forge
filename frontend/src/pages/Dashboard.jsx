@@ -14,6 +14,7 @@ const Dashboard = () => {
   
   const [metrics, setMetrics] = useState([]);
   const [skills, setSkills] = useState([]);
+  const [unifiedMetrics, setUnifiedMetrics] = useState([]);
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncMessage, setSyncMessage] = useState('');
 
@@ -23,13 +24,15 @@ const Dashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
-      const [metricsRes, skillsRes] = await Promise.all([
+      const [metricsRes, skillsRes, unifiedRes] = await Promise.all([
         api.get('/sync/metrics?days=30').catch(() => ({ data: { data: [] } })),
-        api.get('/skills').catch(() => ({ data: { data: [] } }))
+        api.get('/skills').catch(() => ({ data: { data: [] } })),
+        api.get('/sync/unified-metrics?days=30').catch(() => ({ data: { data: [] } }))
       ]);
       
       if (metricsRes.data?.data) setMetrics(metricsRes.data.data);
       if (skillsRes.data?.data) setSkills(skillsRes.data.data);
+      if (unifiedRes.data?.data) setUnifiedMetrics(unifiedRes.data.data);
     } catch (error) {
       console.error('Failed to fetch dashboard data', error);
     }
@@ -81,17 +84,17 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column: Profile Card */}
         <div className="lg:col-span-1">
-          <ProfileCard user={user} stats={stats} profile={profile} />
+          <ProfileCard user={user} stats={stats} profile={profile} unifiedMetrics={unifiedMetrics} />
         </div>
         
         {/* Right Column: Charts */}
         <div className="lg:col-span-2 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-[350px]">
-            <SkillRadar skills={skills} />
-            <ImprovementChart metrics={metrics} />
+            <SkillRadar unifiedMetrics={unifiedMetrics} />
+            <ImprovementChart unifiedMetrics={unifiedMetrics} />
           </div>
           
-          <LanguageActivityCharts metrics={metrics} />
+          <LanguageActivityCharts unifiedMetrics={unifiedMetrics} />
         </div>
       </div>
     </div>

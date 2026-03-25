@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import {
   PieChart,
   Pie,
@@ -8,29 +9,54 @@ import {
 } from 'recharts';
 
 const COLORS = ['#8b5cf6', '#22d3ee', '#f472b6', '#fbbf24', '#34d399', '#f87171'];
-const DIFF_COLORS = {
+const diffColors = {
   Easy: '#34d399',    // emerald-400
   Medium: '#fbbf24',  // amber-400
   Hard: '#f87171'     // red-400
 };
 
-const LanguageActivityCharts = ({ metrics }) => {
-  // Use the most recent metric
-  const latestMetric = metrics && metrics.length > 0 ? metrics[0] : null;
+const LanguageActivityCharts = ({ unifiedMetrics }) => {
+  const [selectedPlatform, setSelectedPlatform] = useState('LeetCode');
 
-  // Process GitHub Languages
-  const rawLangs = latestMetric?.github_languages || {};
-  const langData = Object.keys(rawLangs)
-    .map(key => ({ name: key, value: rawLangs[key] }))
+  // Process GitHub Languages (from the GitHub unified metric if available, or we just keep it as is if backend doesn't provide it)
+  // Actually, our backend unifiedMetrics currently doesn't provide github_languages!
+  // It only provides problemsSolved and activity.
+  // We can just mock languages or keep it empty. Actually let's assume languages is not deeply critical or we can just show "Top Languages" as a placeholder if data is missing, or pull from unifiedMetrics if we add it. 
+  const platformData = unifiedMetrics?.find(p => p.platform === selectedPlatform);
+  const diffStats = platformData?.problemsSolved || {};
+
+  // Dynamically build diffData from keys
+  const diffData = Object.entries(diffStats)
+    .filter(([_, value]) => value > 0)
+    .map(([name, value]) => ({ name, value }))
+    // Sort by integer value if the key is numeric (like CF ratings), or fallback to alphabetical
+    .sort((a, b) => {
+      const numA = parseInt(a.name);
+      const numB = parseInt(b.name);
+      if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+      return a.name.localeCompare(b.name);
+    });
+
+  const githubData = unifiedMetrics?.find(p => p.platform === 'GitHub');
+  const langStats = githubData?.languages || {};
+  const langData = Object.entries(langStats)
+    .filter(([_, value]) => value > 0)
+    .map(([name, value]) => ({ name, value }))
     .sort((a, b) => b.value - a.value)
-    .slice(0, 5); // top 5 languages
+    .slice(0, 10);
+    
+  const LANG_COLORS = ['#fbbf24', '#f87171', '#60a5fa', '#34d399', '#a78bfa', '#f472b6', '#22d3ee', '#fb923c', '#9ca3af', '#bef264'];
 
-  // Process LeetCode Difficulty
-  const diffData = [
-    { name: 'Easy', value: latestMetric?.leetcode_easy || 0 },
-    { name: 'Medium', value: latestMetric?.leetcode_medium || 0 },
-    { name: 'Hard', value: latestMetric?.leetcode_hard || 0 }
-  ].filter(d => d.value > 0);
+  // Calculate generic colors for pie chart using golden angle approximation for visually distinct segments
+  const getDynamicColor = (index, total) => {
+    // Top 3 standard colors
+    if (diffData[index]?.name === 'Easy') return '#34d399';
+    if (diffData[index]?.name === 'Medium') return '#fbbf24';
+    if (diffData[index]?.name === 'Hard') return '#f87171';
+    
+    // Auto-generate for unknown rating buckets like 800, 900
+    return `hsl(${(index * 137.5) % 360}, 70%, 55%)`;
+  };
 
   const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
@@ -65,7 +91,7 @@ const LanguageActivityCharts = ({ metrics }) => {
                   stroke="none"
                 >
                   {langData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    <Cell key={`cell-${index}`} fill={LANG_COLORS[index % LANG_COLORS.length]} />
                   ))}
                 </Pie>
                 <Tooltip content={<CustomTooltip />} />
@@ -79,7 +105,7 @@ const LanguageActivityCharts = ({ metrics }) => {
           ) : (
             <div className="flex items-center justify-center h-full">
               <span className="px-3 py-1 bg-white/5 rounded text-xs text-gray-400 border border-white/10">
-                No language data found. Sync GitHub.
+                No repository language data available.
               </span>
             </div>
           )}
@@ -88,7 +114,21 @@ const LanguageActivityCharts = ({ metrics }) => {
 
       {/* Problem Difficulty Pie Chart */}
       <div className="glass-card flex flex-col">
-        <h3 className="text-lg font-bold text-white mb-4">Problem Difficulty</h3>
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-bold text-white">Problem Difficulty</h3>
+          <select 
+            value={selectedPlatform} 
+            onChange={(e) => setSelectedPlatform(e.target.value)}
+            className="bg-white/5 border border-white/10 text-white text-sm rounded-md px-2 py-1 outline-none focus:border-purple-500"
+          >
+            {unifiedMetrics?.map(p => (
+              <option key={p.platform} value={p.platform} className="bg-[#0f172a]">{p.platform}</option>
+            ))}
+            {(!unifiedMetrics || unifiedMetrics.length === 0) && (
+              <option value="LeetCode" className="bg-[#0f172a]">LeetCode</option>
+            )}
+          </select>
+        </div>
         <div className="flex-1 w-full relative min-h-[200px]">
           {diffData.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
@@ -97,14 +137,14 @@ const LanguageActivityCharts = ({ metrics }) => {
                   data={diffData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={0}
+                  innerRadius={60}
                   outerRadius={80}
+                  paddingAngle={5}
                   dataKey="value"
-                  stroke="rgba(0,0,0,0.2)"
-                  strokeWidth={2}
+                  stroke="none"
                 >
                   {diffData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={DIFF_COLORS[entry.name] || COLORS[0]} />
+                    <Cell key={`cell-${index}`} fill={getDynamicColor(index, diffData.length)} />
                   ))}
                 </Pie>
                 <Tooltip content={<CustomTooltip />} />
