@@ -13,7 +13,7 @@ async def fetch_github_stats(username: str) -> dict:
     if settings.GITHUB_TOKEN:
         headers["Authorization"] = f"token {settings.GITHUB_TOKEN}"
 
-    result = {"repos": 0, "commits": 0, "contributions": 0}
+    result = {"repos": 0, "commits": 0, "contributions": 0, "languages": {}}
 
     async with httpx.AsyncClient(timeout=15.0) as client:
         try:
@@ -25,6 +25,12 @@ async def fetch_github_stats(username: str) -> dict:
             if resp.status_code == 200:
                 repos = resp.json()
                 result["repos"] = len(repos)
+                languages = {}
+                for repo in repos:
+                    lang = repo.get("language")
+                    if lang:
+                        languages[lang] = languages.get(lang, 0) + 1
+                result["languages"] = languages
 
             # Fetch recent events for commit count
             resp = await client.get(
@@ -182,3 +188,79 @@ async def fetch_codechef_stats(username: str) -> dict:
             print(f"[CodeChef API Error] {username}: {e}")
 
     return result
+
+
+async def verify_github_user(username: str) -> bool:
+    """Check if a GitHub user exists."""
+    if not username:
+        return False
+    
+    settings = get_settings()
+    headers = {"Accept": "application/vnd.github.v3+json"}
+    if settings.GITHUB_TOKEN:
+        headers["Authorization"] = f"token {settings.GITHUB_TOKEN}"
+
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        try:
+            resp = await client.get(f"https://api.github.com/users/{username}", headers=headers)
+            return resp.status_code == 200
+        except Exception as e:
+            print(f"Error checking GitHub user {username}: {e}")
+            return False
+    return False
+
+async def verify_leetcode_user(username: str) -> bool:
+    """Check if a LeetCode user exists."""
+    if not username:
+        return False
+    query = """
+    query getUserProfile($username: String!) {
+        matchedUser(username: $username) {
+            username
+        }
+    }
+    """
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        try:
+            resp = await client.post(
+                "https://leetcode.com/graphql",
+                json={"query": query, "variables": {"username": username}},
+                headers={"Content-Type": "application/json", "Referer": "https://leetcode.com"},
+            )
+            if resp.status_code == 200:
+                data = resp.json()
+                return bool(data.get("data", {}).get("matchedUser"))
+        except Exception:
+            pass
+    return False
+
+async def verify_codeforces_user(username: str) -> bool:
+    """Check if a Codeforces user exists."""
+    if not username:
+        return False
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        try:
+            resp = await client.get(f"https://codeforces.com/api/user.info?handles={username}")
+            if resp.status_code == 200:
+                data = resp.json()
+                return data.get("status") == "OK"
+        except Exception:
+            pass
+    return False
+
+async def verify_codechef_user(username: str) -> bool:
+    """Check if a CodeChef user exists."""
+    if not username:
+        return False
+    async with httpx.AsyncClient(timeout=10.0, follow_redirects=True) as client:
+        try:
+            resp = await client.get(
+                f"https://www.codechef.com/users/{username}",
+                headers={"User-Agent": "Mozilla/5.0"},
+            )
+            # CodeChef might redirect to home page if user not found, so check URL and title
+            return resp.status_code == 200 and username.lower() in str(resp.url).lower()
+        except Exception:
+            pass
+    return False
+

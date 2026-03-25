@@ -11,7 +11,7 @@ from app.services.platform_service import (
 )
 from app.services.gamification_service import award_xp, calculate_xp_from_sync
 
-router = APIRouter(prefix="/api", tags=["Sync"])
+router = APIRouter(prefix="/api/sync", tags=["Sync"])
 
 
 @router.post("/sync-profiles", response_model=SuccessResponse)
@@ -46,6 +46,7 @@ async def sync_profiles(current_user: User = Depends(get_current_user)):
         github_repos=github["repos"],
         github_commits=github["commits"],
         github_contributions=github.get("contributions", 0),
+        github_languages=github.get("languages", {}),
         leetcode_solved=leetcode["solved"],
         leetcode_easy=leetcode["easy"],
         leetcode_medium=leetcode["medium"],
@@ -101,6 +102,7 @@ async def get_metrics(
             "github_repos": m.github_repos,
             "github_commits": m.github_commits,
             "github_contributions": m.github_contributions,
+            "github_languages": m.github_languages,
             "leetcode_solved": m.leetcode_solved,
             "leetcode_easy": m.leetcode_easy,
             "leetcode_medium": m.leetcode_medium,

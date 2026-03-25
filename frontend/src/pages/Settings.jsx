@@ -56,7 +56,8 @@ const Settings = () => {
       setMessage({ text: 'Platform usernames saved successfully!', type: 'success' });
       await refreshUser();
     } catch (error) {
-      setMessage({ text: 'Failed to save settings.', type: 'error' });
+      const errMsg = error.response?.data?.detail || 'Failed to save settings.';
+      setMessage({ text: errMsg, type: 'error' });
     } finally {
       setLoading(false);
     }

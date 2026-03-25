@@ -19,10 +19,10 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS
+# CORS — allow any localhost port so Vite's auto-increment ports (5173, 5174, …) always work
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000", "http://127.0.0.1:5173"],
+    allow_origin_regex=r"http://(localhost|127\.0\.0\.1)(:\d+)?",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

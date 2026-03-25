@@ -10,6 +10,7 @@ class PlatformMetrics(Document):
     github_repos: int = 0
     github_commits: int = 0
     github_contributions: int = 0
+    github_languages: dict = Field(default_factory=dict)
     # LeetCode
     leetcode_solved: int = 0
     leetcode_easy: int = 0

@@ -7,6 +7,7 @@ import { RefreshCw, Loader2 } from 'lucide-react';
 import ProfileCard from '../components/dashboard/ProfileCard';
 import SkillRadar from '../components/dashboard/SkillRadar';
 import ImprovementChart from '../components/dashboard/ImprovementChart';
+import LanguageActivityCharts from '../components/dashboard/LanguageActivityCharts';
 
 const Dashboard = () => {
   const { user, stats, profile, refreshUser } = useAuth();
@@ -90,15 +91,7 @@ const Dashboard = () => {
             <ImprovementChart metrics={metrics} />
           </div>
           
-          <div className="glass-card">
-            <h3 className="text-lg font-bold text-white mb-4">Recent Milestones</h3>
-            <div className="flex items-center justify-center h-32 border border-white/5 rounded-xl bg-white/5 border-dashed">
-              <p className="text-gray-400 flex items-center">
-                <Loader2 className="w-4 h-4 mr-2 animate-spin opacity-50" />
-                No recent milestones to display
-              </p>
-            </div>
-          </div>
+          <LanguageActivityCharts metrics={metrics} />
         </div>
       </div>
     </div>

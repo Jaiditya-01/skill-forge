@@ -1,8 +1,14 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from app.models.user import User, UserProfile
 from app.schemas.profile import ProfileUpdateRequest
 from app.schemas.common import SuccessResponse
 from app.services.auth_service import get_current_user
+from app.services.platform_service import (
+    verify_github_user,
+    verify_leetcode_user,
+    verify_codeforces_user,
+    verify_codechef_user,
+)
 
 router = APIRouter(prefix="/api/profile", tags=["Profile"])
 
@@ -30,18 +36,53 @@ async def update_profile(
     req: ProfileUpdateRequest,
     current_user: User = Depends(get_current_user),
 ):
-    """Update platform usernames."""
+    """Update platform usernames with validation and uniqueness checking."""
     profile = await UserProfile.find_one(UserProfile.user_id == current_user.id)
     if not profile:
         profile = UserProfile(user_id=current_user.id)
 
-    if req.github_username is not None:
+    # GitHub
+    if req.github_username is not None and req.github_username != profile.github_username:
+        if req.github_username != "":
+            existing = await UserProfile.find_one({"github_username": req.github_username})
+            if existing and existing.user_id != current_user.id:
+                raise HTTPException(status_code=400, detail=f"GitHub username '{req.github_username}' is already linked to another account")
+            is_valid = await verify_github_user(req.github_username)
+            if not is_valid:
+                raise HTTPException(status_code=400, detail=f"GitHub username '{req.github_username}' does not exist or failed verification")
         profile.github_username = req.github_username
-    if req.leetcode_username is not None:
+
+    # LeetCode
+    if req.leetcode_username is not None and req.leetcode_username != profile.leetcode_username:
+        if req.leetcode_username != "":
+            existing = await UserProfile.find_one({"leetcode_username": req.leetcode_username})
+            if existing and existing.user_id != current_user.id:
+                raise HTTPException(status_code=400, detail=f"LeetCode username '{req.leetcode_username}' is already linked to another account")
+            is_valid = await verify_leetcode_user(req.leetcode_username)
+            if not is_valid:
+                raise HTTPException(status_code=400, detail=f"LeetCode username '{req.leetcode_username}' does not exist or failed verification")
         profile.leetcode_username = req.leetcode_username
-    if req.codeforces_username is not None:
+
+    # Codeforces
+    if req.codeforces_username is not None and req.codeforces_username != profile.codeforces_username:
+        if req.codeforces_username != "":
+            existing = await UserProfile.find_one({"codeforces_username": req.codeforces_username})
+            if existing and existing.user_id != current_user.id:
+                raise HTTPException(status_code=400, detail=f"Codeforces handle '{req.codeforces_username}' is already linked to another account")
+            is_valid = await verify_codeforces_user(req.codeforces_username)
+            if not is_valid:
+                raise HTTPException(status_code=400, detail=f"Codeforces handle '{req.codeforces_username}' does not exist or failed verification")
         profile.codeforces_username = req.codeforces_username
-    if req.codechef_username is not None:
+
+    # CodeChef
+    if req.codechef_username is not None and req.codechef_username != profile.codechef_username:
+        if req.codechef_username != "":
+            existing = await UserProfile.find_one({"codechef_username": req.codechef_username})
+            if existing and existing.user_id != current_user.id:
+                raise HTTPException(status_code=400, detail=f"CodeChef username '{req.codechef_username}' is already linked to another account")
+            is_valid = await verify_codechef_user(req.codechef_username)
+            if not is_valid:
+                raise HTTPException(status_code=400, detail=f"CodeChef username '{req.codechef_username}' does not exist or failed verification")
         profile.codechef_username = req.codechef_username
 
     await profile.save()
