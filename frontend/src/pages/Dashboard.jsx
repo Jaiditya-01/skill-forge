@@ -8,6 +8,8 @@ import ProfileCard from '../components/dashboard/ProfileCard';
 import SkillRadar from '../components/dashboard/SkillRadar';
 import ImprovementChart from '../components/dashboard/ImprovementChart';
 import LanguageActivityCharts from '../components/dashboard/LanguageActivityCharts';
+import IsometricHeatmap from '../components/dashboard/IsometricHeatmap';
+import PeerComparisonCard from '../components/dashboard/PeerComparisonCard';
 
 const Dashboard = () => {
   const { user, stats, profile, refreshUser } = useAuth();
@@ -57,7 +59,7 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="space-y-6 animate-in fade-in duration-500 relative">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-white tracking-tight">Dashboard</h1>
@@ -82,9 +84,10 @@ const Dashboard = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column: Profile Card */}
-        <div className="lg:col-span-1">
+        {/* Left Column: Profile Card & Insights */}
+        <div className="lg:col-span-1 space-y-6">
           <ProfileCard user={user} stats={stats} profile={profile} unifiedMetrics={unifiedMetrics} />
+          <PeerComparisonCard />
         </div>
         
         {/* Right Column: Charts */}
@@ -97,6 +100,9 @@ const Dashboard = () => {
           <LanguageActivityCharts unifiedMetrics={unifiedMetrics} />
         </div>
       </div>
+
+      {/* Full-width 3D Isometric Heatmap */}
+      <IsometricHeatmap unifiedMetrics={unifiedMetrics} />
     </div>
   );
 };

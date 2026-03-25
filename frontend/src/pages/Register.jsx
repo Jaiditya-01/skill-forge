@@ -10,6 +10,11 @@ const Register = () => {
     password: '',
     university: '',
     major_semester: '',
+    target_role: '',
+    year: '',
+    skill_level: '',
+    preferred_stack: '',
+    internship_timeline: '',
   });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -124,6 +129,97 @@ const Register = () => {
                 className="w-full glass-input" 
                 placeholder="B.Tech CSE Semester VI"
               />
+            </div>
+
+            {/* --- New Profiling Fields --- */}
+            <div className="pt-4 border-t border-white/10 mt-4">
+              <h3 className="text-white font-medium mb-4">Professional Profile</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-gray-400 mb-1">Target Role</label>
+                  <select 
+                    name="target_role" 
+                    value={formData.target_role} 
+                    onChange={handleChange}
+                    className="w-full glass-input text-gray-200 bg-gray-900/50 appearance-none"
+                  >
+                    <option value="">Select Role</option>
+                    <option value="Frontend Developer">Frontend Developer</option>
+                    <option value="Backend Developer">Backend Developer</option>
+                    <option value="Full Stack Developer">Full Stack Developer</option>
+                    <option value="AI/ML Engineer">AI/ML Engineer</option>
+                    <option value="Data Scientist">Data Scientist</option>
+                    <option value="DevOps Engineer">DevOps Engineer</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-xs font-medium text-gray-400 mb-1">Current Year</label>
+                  <select 
+                    name="year" 
+                    value={formData.year} 
+                    onChange={handleChange}
+                    className="w-full glass-input text-gray-200 bg-gray-900/50 appearance-none"
+                  >
+                    <option value="">Select Year</option>
+                    <option value="1st Year">1st Year</option>
+                    <option value="2nd Year">2nd Year</option>
+                    <option value="3rd Year">3rd Year</option>
+                    <option value="Final Year">Final Year</option>
+                    <option value="Graduate">Graduate</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-gray-400 mb-1">Skill Level</label>
+                  <select 
+                    name="skill_level" 
+                    value={formData.skill_level} 
+                    onChange={handleChange}
+                    className="w-full glass-input text-gray-200 bg-gray-900/50 appearance-none"
+                  >
+                    <option value="">Select Level</option>
+                    <option value="Beginner">Beginner</option>
+                    <option value="Intermediate">Intermediate</option>
+                    <option value="Advanced">Advanced</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-gray-400 mb-1">Preferred Stack</label>
+                  <select 
+                    name="preferred_stack" 
+                    value={formData.preferred_stack} 
+                    onChange={handleChange}
+                    className="w-full glass-input text-gray-200 bg-gray-900/50 appearance-none"
+                  >
+                    <option value="">Select Stack</option>
+                    <option value="MERN">MERN</option>
+                    <option value="MEAN">MEAN</option>
+                    <option value="Django + React">Django + React</option>
+                    <option value="Spring Boot">Spring Boot</option>
+                    <option value="Go + React">Go + React</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+
+                <div className="col-span-2">
+                  <label className="block text-xs font-medium text-gray-400 mb-1">Internship / Job Timeline</label>
+                  <select 
+                    name="internship_timeline" 
+                    value={formData.internship_timeline} 
+                    onChange={handleChange}
+                    className="w-full glass-input text-gray-200 bg-gray-900/50 appearance-none"
+                  >
+                    <option value="">When are you seeking?</option>
+                    <option value="Immediate">Immediate</option>
+                    <option value="Within 3 Months">Within 3 Months</option>
+                    <option value="Within 6 Months">Within 6 Months</option>
+                    <option value="In 1 Year">In 1 Year</option>
+                    <option value="Not Currently Seeking">Not Currently Seeking</option>
+                  </select>
+                </div>
+              </div>
             </div>
 
             <button 

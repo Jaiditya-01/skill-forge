@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/client';
-import { Trophy, Filter, X, Zap } from 'lucide-react';
+import { Trophy, Filter, X, Zap, Loader2, UserPlus, Check } from 'lucide-react';
 
 const Leaderboard = () => {
   const { user } = useAuth();
@@ -9,10 +9,37 @@ const Leaderboard = () => {
   const [filterType, setFilterType] = useState('');
   const [filterValue, setFilterValue] = useState('');
   const [loading, setLoading] = useState(true);
+  const [rivalries, setRivalries] = useState([]);
+  const [actionLoading, setActionLoading] = useState(null);
 
   useEffect(() => {
     fetchLeaderboard();
-  }, [filterType, filterValue]);
+    if (user) fetchRivalries();
+  }, [filterType, filterValue, user]);
+
+  const fetchRivalries = async () => {
+    try {
+      const res = await api.get('/rivalry/dashboard');
+      if (res.data.success) {
+        setRivalries(res.data.data.rivalries || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch rivalries', error);
+    }
+  };
+
+  const addRival = async (e, rivalId) => {
+    e.stopPropagation();
+    setActionLoading(rivalId);
+    try {
+      await api.post(`/rivalry/add/${rivalId}`);
+      fetchRivalries();
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setActionLoading(null);
+    }
+  };
 
   const fetchLeaderboard = async () => {
     setLoading(true);
@@ -93,20 +120,23 @@ const Leaderboard = () => {
               <th className="py-4 px-6 text-gray-400 font-semibold text-sm">Level</th>
               <th className="py-4 px-6 text-gray-400 font-semibold text-sm">Total XP</th>
               <th className="py-4 px-6 text-gray-400 font-semibold text-sm">Streak</th>
+              <th className="py-4 px-6 text-gray-400 font-semibold text-sm text-right">Action</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">
             {loading ? (
               <tr>
-                <td colSpan="5" className="py-8 text-center text-gray-400">Loading rankings...</td>
+                <td colSpan="6" className="py-8 text-center text-gray-400">Loading rankings...</td>
               </tr>
             ) : leaders.length === 0 ? (
               <tr>
-                <td colSpan="5" className="py-8 text-center text-gray-400">No coders found matching criteria.</td>
+                <td colSpan="6" className="py-8 text-center text-gray-400">No coders found matching criteria.</td>
               </tr>
             ) : (
               leaders.map((leader) => {
                 const isMe = user?.name === leader.name;
+                const isAlreadyRival = rivalries.some(r => r.rival_id === leader.user_id);
+                
                 return (
                   <tr 
                     key={leader.user_id} 
@@ -151,6 +181,31 @@ const Leaderboard = () => {
                         <Zap className="w-4 h-4 mr-1 pb-0.5" />
                         {leader.current_streak}
                       </div>
+                    </td>
+                    <td className="py-4 px-6 text-right">
+                      {!isMe && (
+                        <button
+                          onClick={(e) => addRival(e, leader.user_id)}
+                          disabled={actionLoading === leader.user_id || isAlreadyRival}
+                          className={`inline-flex items-center px-3 py-1.5 rounded text-xs font-semibold transition-colors ${
+                            isAlreadyRival 
+                              ? 'bg-gray-800 text-gray-500 cursor-not-allowed border border-gray-700' 
+                              : 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500 hover:text-white border border-emerald-500/20 hover:border-emerald-500'
+                          }`}
+                        >
+                          {actionLoading === leader.user_id ? (
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                          ) : isAlreadyRival ? (
+                            <>
+                              <Check className="w-3 h-3 mr-1" /> Added
+                            </>
+                          ) : (
+                            <>
+                              <UserPlus className="w-3 h-3 mr-1" /> Rival
+                            </>
+                          )}
+                        </button>
+                      )}
                     </td>
                   </tr>
                 );

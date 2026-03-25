@@ -10,6 +10,11 @@ class RegisterRequest(BaseModel):
     major_semester: str = ""
     interests: List[str] = []
     country: str = ""
+    target_role: str = ""
+    year: str = ""
+    skill_level: str = ""
+    preferred_stack: str = ""
+    internship_timeline: str = ""
 
 
 class LoginRequest(BaseModel):
@@ -30,6 +35,11 @@ class UserResponse(BaseModel):
     major_semester: str
     interests: List[str]
     country: str
+    target_role: str
+    year: str
+    skill_level: str
+    preferred_stack: str
+    internship_timeline: str
 
 
 class UserUpdateRequest(BaseModel):
@@ -38,3 +48,8 @@ class UserUpdateRequest(BaseModel):
     major_semester: Optional[str] = None
     interests: Optional[List[str]] = None
     country: Optional[str] = None
+    target_role: Optional[str] = None
+    year: Optional[str] = None
+    skill_level: Optional[str] = None
+    preferred_stack: Optional[str] = None
+    internship_timeline: Optional[str] = None

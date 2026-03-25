@@ -49,6 +49,9 @@ from app.routes.tasks import router as tasks_router
 from app.routes.sync import router as sync_router
 from app.routes.gamification import router as gamification_router
 from app.routes.leaderboard import router as leaderboard_router
+from app.routes.skills_profile import router as skills_profile_router
+from app.routes.peer_comparison import router as peer_comparison_router
+from app.routes.rivalry import router as rivalry_router
 from app.routes.skills import router as skills_router
 from app.routes.reminders import router as reminders_router
 
@@ -60,6 +63,9 @@ app.include_router(gamification_router)
 app.include_router(leaderboard_router)
 app.include_router(skills_router)
 app.include_router(reminders_router)
+app.include_router(skills_profile_router)
+app.include_router(peer_comparison_router)
+app.include_router(rivalry_router)
 
 
 @app.get("/api/health")

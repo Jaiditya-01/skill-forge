@@ -15,6 +15,8 @@ async def init_db():
     from app.models.platform_metrics import PlatformMetrics
     from app.models.skill import Skill
     from app.models.badge import Badge
+    from app.models.skill_profile import SkillProfile
+    from app.models.rivalry import Rivalry
 
     await init_beanie(
         database=database,
@@ -26,5 +28,7 @@ async def init_db():
             PlatformMetrics,
             Skill,
             Badge,
+            SkillProfile,
+            Rivalry,
         ],
     )

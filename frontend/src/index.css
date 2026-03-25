@@ -23,6 +23,13 @@
     background-attachment: fixed;
     min-height: 100vh;
   }
+
+  /* Style all native dropdown options for dark theme */
+  select option {
+    background-color: #0f111a;
+    color: var(--foreground);
+    padding: 8px;
+  }
 }
 
 @layer components {

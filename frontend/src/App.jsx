@@ -9,6 +9,7 @@ import Dashboard from './pages/Dashboard';
 import Tasks from './pages/Tasks';
 import Leaderboard from './pages/Leaderboard';
 import Settings from './pages/Settings';
+import RivalDashboard from './pages/RivalDashboard';
 
 // Layout
 import Layout from './components/Layout';
@@ -28,6 +29,7 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/tasks" element={<Tasks />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
+            <Route path="/rivals" element={<RivalDashboard />} />
             <Route path="/settings" element={<Settings />} />
           </Route>
           

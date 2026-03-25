@@ -11,6 +11,11 @@ class User(Document):
     major_semester: str = ""  # e.g. "B.Tech CSE Semester VI"
     interests: List[str] = []  # e.g. ["Frontend", "Backend", "DSA"]
     country: str = ""
+    target_role: str = ""
+    year: str = ""
+    skill_level: str = ""
+    preferred_stack: str = ""
+    internship_timeline: str = ""
     password_hash: str
     created_at: datetime = Field(default_factory=datetime.utcnow)
 

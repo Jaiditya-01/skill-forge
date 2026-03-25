@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, status
 from app.models.user import User, UserProfile, UserStats
+from app.models.skill_profile import SkillProfile
 from app.schemas.auth import (
     RegisterRequest,
     LoginRequest,
@@ -36,6 +37,11 @@ async def register(req: RegisterRequest):
         major_semester=req.major_semester,
         interests=req.interests,
         country=req.country,
+        target_role=req.target_role,
+        year=req.year,
+        skill_level=req.skill_level,
+        preferred_stack=req.preferred_stack,
+        internship_timeline=req.internship_timeline,
         password_hash=hash_password(req.password),
     )
     await user.insert()
@@ -47,6 +53,10 @@ async def register(req: RegisterRequest):
     # Create initial stats
     stats = UserStats(user_id=user.id)
     await stats.insert()
+
+    # Create initial skill profile
+    skill_profile = SkillProfile(user_id=user.id)
+    await skill_profile.insert()
 
     # Generate token
     token = create_access_token({"sub": str(user.id)})
@@ -107,6 +117,11 @@ async def get_me(current_user: User = Depends(get_current_user)):
                 "major_semester": current_user.major_semester,
                 "interests": current_user.interests,
                 "country": current_user.country,
+                "target_role": current_user.target_role,
+                "year": current_user.year,
+                "skill_level": current_user.skill_level,
+                "preferred_stack": current_user.preferred_stack,
+                "internship_timeline": current_user.internship_timeline,
             },
             "stats": {
                 "total_xp": stats.total_xp if stats else 0,
@@ -137,6 +152,16 @@ async def update_me(req: UserUpdateRequest, current_user: User = Depends(get_cur
         current_user.interests = req.interests
     if req.country is not None:
         current_user.country = req.country
+    if req.target_role is not None:
+        current_user.target_role = req.target_role
+    if req.year is not None:
+        current_user.year = req.year
+    if req.skill_level is not None:
+        current_user.skill_level = req.skill_level
+    if req.preferred_stack is not None:
+        current_user.preferred_stack = req.preferred_stack
+    if req.internship_timeline is not None:
+        current_user.internship_timeline = req.internship_timeline
 
     await current_user.save()
 
@@ -148,4 +173,9 @@ async def update_me(req: UserUpdateRequest, current_user: User = Depends(get_cur
         "major_semester": current_user.major_semester,
         "interests": current_user.interests,
         "country": current_user.country,
+        "target_role": current_user.target_role,
+        "year": current_user.year,
+        "skill_level": current_user.skill_level,
+        "preferred_stack": current_user.preferred_stack,
+        "internship_timeline": current_user.internship_timeline,
     })
