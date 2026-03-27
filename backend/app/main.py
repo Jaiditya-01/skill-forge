@@ -54,6 +54,7 @@ from app.routes.peer_comparison import router as peer_comparison_router
 from app.routes.rivalry import router as rivalry_router
 from app.routes.skills import router as skills_router
 from app.routes.reminders import router as reminders_router
+from app.routes.dev_card import router as dev_card_router
 
 app.include_router(auth_router)
 app.include_router(profile_router)
@@ -66,6 +67,7 @@ app.include_router(reminders_router)
 app.include_router(skills_profile_router)
 app.include_router(peer_comparison_router)
 app.include_router(rivalry_router)
+app.include_router(dev_card_router)  # Public SVG Dev Card
 
 
 @app.get("/api/health")

@@ -7,7 +7,8 @@ import {
   Settings, 
   LogOut,
   Code2,
-  Swords
+  Swords,
+  CreditCard
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -17,8 +18,9 @@ const Sidebar = () => {
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { name: 'Tasks & Goals', path: '/tasks', icon: CheckSquare },
     { name: 'Leaderboard', path: '/leaderboard', icon: Trophy },
-    { name: 'Rivals', path: '/rivals', icon: Swords },
-    { name: 'Settings', path: '/settings', icon: Settings },
+    { name: 'Rivals',       path: '/rivals',    icon: Swords },
+    { name: 'Dev Card',     path: '/dev-card',  icon: CreditCard },
+    { name: 'Settings',     path: '/settings',  icon: Settings },
   ];
 
   return (

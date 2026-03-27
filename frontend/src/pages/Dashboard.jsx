@@ -8,7 +8,7 @@ import ProfileCard from '../components/dashboard/ProfileCard';
 import SkillRadar from '../components/dashboard/SkillRadar';
 import ImprovementChart from '../components/dashboard/ImprovementChart';
 import LanguageActivityCharts from '../components/dashboard/LanguageActivityCharts';
-import IsometricHeatmap from '../components/dashboard/IsometricHeatmap';
+import ActivityHeatmap from '../components/dashboard/ActivityHeatmap';
 import PeerComparisonCard from '../components/dashboard/PeerComparisonCard';
 
 const Dashboard = () => {
@@ -101,8 +101,8 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Full-width 3D Isometric Heatmap */}
-      <IsometricHeatmap unifiedMetrics={unifiedMetrics} />
+      {/* Full-width 2D Activity Heatmap */}
+      <ActivityHeatmap unifiedMetrics={unifiedMetrics} />
     </div>
   );
 };

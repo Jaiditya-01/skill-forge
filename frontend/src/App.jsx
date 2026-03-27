@@ -10,6 +10,7 @@ import Tasks from './pages/Tasks';
 import Leaderboard from './pages/Leaderboard';
 import Settings from './pages/Settings';
 import RivalDashboard from './pages/RivalDashboard';
+import DevCardGenerator from './pages/DevCardGenerator';
 
 // Layout
 import Layout from './components/Layout';
@@ -31,6 +32,7 @@ function App() {
             <Route path="/leaderboard" element={<Leaderboard />} />
             <Route path="/rivals" element={<RivalDashboard />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/dev-card" element={<DevCardGenerator />} />
           </Route>
           
           {/* Fallback */}
