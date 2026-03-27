@@ -6,8 +6,7 @@ from app.services.auth_service import get_current_user
 from app.services.platform_service import (
     fetch_github_stats,
     fetch_leetcode_stats,
-    fetch_codeforces_stats,
-    fetch_codechef_stats,
+    fetch_codeforces_stats
 )
 from app.services.gamification_service import award_xp, calculate_xp_from_sync
 
@@ -30,15 +29,13 @@ async def sync_profiles(current_user: User = Depends(get_current_user)):
     if old_metrics_doc:
         old_metrics = {
             "leetcode_solved": old_metrics_doc.leetcode_solved,
-            "codeforces_solved": old_metrics_doc.codeforces_solved,
-            "codechef_solved": old_metrics_doc.codechef_solved,
+            "codeforces_solved": old_metrics_doc.codeforces_solved
         }
 
     # Fetch from all platforms
     github = await fetch_github_stats(profile.github_username)
     leetcode = await fetch_leetcode_stats(profile.leetcode_username)
     codeforces = await fetch_codeforces_stats(profile.codeforces_username)
-    codechef = await fetch_codechef_stats(profile.codechef_username)
 
     # Save new snapshot
     metrics = PlatformMetrics(
@@ -57,18 +54,14 @@ async def sync_profiles(current_user: User = Depends(get_current_user)):
         codeforces_solved=codeforces["solved"],
         codeforces_rating=codeforces["rating"],
         codeforces_daily=codeforces.get("daily", {}),
-        codeforces_problem_ratings=codeforces.get("problem_ratings", {}),
-        codechef_solved=codechef["solved"],
-        codechef_rating=codechef["rating"],
-        codechef_daily=codechef.get("daily", {})
+        codeforces_problem_ratings=codeforces.get("problem_ratings", {})
     )
     await metrics.insert()
 
     # Calculate and award XP from new problems solved
     new_metrics = {
         "leetcode_solved": leetcode["solved"],
-        "codeforces_solved": codeforces["solved"],
-        "codechef_solved": codechef["solved"],
+        "codeforces_solved": codeforces["solved"]
     }
     xp_earned = await calculate_xp_from_sync(current_user.id, new_metrics, old_metrics)
     stats = None
@@ -81,7 +74,6 @@ async def sync_profiles(current_user: User = Depends(get_current_user)):
             "github": github,
             "leetcode": leetcode,
             "codeforces": codeforces,
-            "codechef": codechef,
             "xp_earned": xp_earned,
             "stats": {
                 "total_xp": stats.total_xp if stats else (old_metrics.get("total_xp", 0)),
@@ -114,9 +106,7 @@ async def get_metrics(
             "leetcode_hard": m.leetcode_hard,
             "leetcode_rating": m.leetcode_rating,
             "codeforces_solved": m.codeforces_solved,
-            "codeforces_rating": m.codeforces_rating,
-            "codechef_solved": m.codechef_solved,
-            "codechef_rating": m.codechef_rating,
+            "codeforces_rating": m.codeforces_rating
         }
         for m in metrics
     ])
@@ -183,23 +173,7 @@ async def get_unified_metrics(
         "activity": cf_activity
     })
 
-    # 3. CodeChef
-    cc_activity = []
-    cc_daily = latest.codechef_daily if latest else {}
-    for d_str in date_strs:
-        cc_activity.append({"date": d_str, "value": cc_daily.get(d_str, 0)})
-        
-    unified_data.append({
-        "platform": "CodeChef",
-        "username": profile.codechef_username,
-        "maxRating": latest.codechef_rating if latest else 0,
-        "problemsSolved": {
-            "Total": latest.codechef_solved if latest else 0 
-        },
-        "activity": cc_activity
-    })
-
-    # 4. GitHub
+    # 3. GitHub
     gh_activity = []
     gh_daily = latest.github_daily if latest else {}
     for d_str in date_strs:

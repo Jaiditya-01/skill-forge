@@ -52,13 +52,13 @@ async def get_peer_comparison(current_user: User = Depends(get_current_user)):
 
     total_peer_solved = 0
     for pm in peer_latest.values():
-        total_peer_solved += (pm.leetcode_solved + pm.codeforces_solved + pm.codechef_solved)
+        total_peer_solved += (pm.leetcode_solved + pm.codeforces_solved)
     
     avg_solved = total_peer_solved / len(peer_latest) if peer_latest else 0
     
     my_solved = 0
     if my_metrics:
-        my_solved = my_metrics.leetcode_solved + my_metrics.codeforces_solved + my_metrics.codechef_solved
+        my_solved = my_metrics.leetcode_solved + my_metrics.codeforces_solved
 
     return SuccessResponse(data={
         "has_data": True,

@@ -42,8 +42,6 @@ const SkillRadar = ({ unifiedMetrics }) => {
         });
       } else if (platformData.platform === 'GitHub') {
         weightedScore = (platformData.problemsSolved?.Contributions || 0) * 0.5; // Scale down
-      } else if (platformData.platform === 'CodeChef') {
-        weightedScore = (platformData.problemsSolved?.Total || 0) * 2;
       }
 
       const normalizedScore = Math.min(100, Math.round((weightedScore / MAX_POINTS) * 100));
@@ -60,8 +58,7 @@ const SkillRadar = ({ unifiedMetrics }) => {
   const defaultData = [
     { subject: 'LeetCode', score: 0, fullMark: 100 },
     { subject: 'Codeforces', score: 0, fullMark: 100 },
-    { subject: 'GitHub', score: 0, fullMark: 100 },
-    { subject: 'CodeChef', score: 0, fullMark: 100 }
+    { subject: 'GitHub', score: 0, fullMark: 100 }
   ];
 
   // If no accurate data yet, use placeholder default framework

@@ -4,15 +4,13 @@ import { Globe as Github, Code, Trophy, Target, LayoutGrid } from 'lucide-react'
 const platformIcons = {
   GitHub: Github,
   LeetCode: Code,
-  Codeforces: Trophy,
-  CodeChef: LayoutGrid
+  Codeforces: Trophy
 };
 
 const platformColors = {
   GitHub: 'text-gray-300',
   LeetCode: 'text-yellow-500',
-  Codeforces: 'text-blue-400',
-  CodeChef: 'text-orange-400'
+  Codeforces: 'text-blue-400'
 };
 
 const PlatformCard = ({ platformData }) => {
@@ -33,8 +31,6 @@ const PlatformCard = ({ platformData }) => {
     metricValue = (problemsSolved?.Easy || 0) + (problemsSolved?.Medium || 0) + (problemsSolved?.Hard || 0);
   } else if (platform === 'Codeforces') {
     metricValue = Object.values(problemsSolved || {}).reduce((a, b) => a + b, 0);
-  } else if (platform === 'CodeChef') {
-    metricValue = problemsSolved?.Total || 0;
   }
 
   return (

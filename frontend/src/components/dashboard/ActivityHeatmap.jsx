@@ -5,7 +5,6 @@ const PLATFORMS = [
   { key: 'GitHub',      label: 'GitHub',      fill: '#8b5cf6' },
   { key: 'LeetCode',   label: 'LeetCode',    fill: '#fbbf24' },
   { key: 'Codeforces', label: 'Codeforces',  fill: '#60a5fa' },
-  { key: 'CodeChef',   label: 'CodeChef',    fill: '#34d399' },
 ];
 
 const COLS = 53;

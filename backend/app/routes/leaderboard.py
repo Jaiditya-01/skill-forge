@@ -119,7 +119,6 @@ async def get_peer_profile(
             "github_repos": latest_metrics.github_repos if latest_metrics else 0,
             "github_commits": latest_metrics.github_commits if latest_metrics else 0,
             "leetcode_solved": latest_metrics.leetcode_solved if latest_metrics else 0,
-            "codeforces_solved": latest_metrics.codeforces_solved if latest_metrics else 0,
-            "codechef_solved": latest_metrics.codechef_solved if latest_metrics else 0,
+            "codeforces_solved": latest_metrics.codeforces_solved if latest_metrics else 0
         },
     })

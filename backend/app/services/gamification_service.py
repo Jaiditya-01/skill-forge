@@ -117,14 +117,13 @@ async def _total_problems_solved(user_id: PydanticObjectId) -> int:
     return (
         latest.leetcode_solved
         + latest.codeforces_solved
-        + latest.codechef_solved
     )
 
 
 async def calculate_xp_from_sync(user_id: PydanticObjectId, new_metrics: dict, old_metrics: dict) -> int:
     """Calculate XP gained from platform sync deltas."""
     xp = 0
-    for platform in ["leetcode_solved", "codeforces_solved", "codechef_solved"]:
+    for platform in ["leetcode_solved", "codeforces_solved"]:
         delta = new_metrics.get(platform, 0) - old_metrics.get(platform, 0)
         if delta > 0:
             xp += delta * 20  # 20 XP per new problem

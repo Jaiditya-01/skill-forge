@@ -225,37 +225,6 @@ async def fetch_codeforces_stats(username: str) -> dict:
     return result
 
 
-async def fetch_codechef_stats(username: str) -> dict:
-    """Fetch CodeChef stats."""
-    if not username:
-        return {"solved": 0, "rating": 0}
-
-    result = {"solved": 0, "rating": 0}
-
-    async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
-        try:
-            resp = await client.get(
-                f"https://www.codechef.com/users/{username}",
-                headers={"User-Agent": "Mozilla/5.0"},
-            )
-            if resp.status_code == 200:
-                import re
-                # Try to extract rating
-                rating_match = re.search(r'rating.*?(\d{3,4})', resp.text, re.IGNORECASE)
-                if rating_match:
-                    result["rating"] = int(rating_match.group(1))
-
-                # Try to extract problems solved
-                solved_match = re.search(
-                    r'Problems\s+Solved.*?(\d+)', resp.text, re.IGNORECASE | re.DOTALL
-                )
-                if solved_match:
-                    result["solved"] = int(solved_match.group(1))
-        except Exception as e:
-            print(f"[CodeChef API Error] {username}: {e}")
-
-    return result
-
 
 async def verify_github_user(username: str) -> bool:
     """Check if a GitHub user exists."""
@@ -311,22 +280,6 @@ async def verify_codeforces_user(username: str) -> bool:
             if resp.status_code == 200:
                 data = resp.json()
                 return data.get("status") == "OK"
-        except Exception:
-            pass
-    return False
-
-async def verify_codechef_user(username: str) -> bool:
-    """Check if a CodeChef user exists."""
-    if not username:
-        return False
-    async with httpx.AsyncClient(timeout=10.0, follow_redirects=True) as client:
-        try:
-            resp = await client.get(
-                f"https://www.codechef.com/users/{username}",
-                headers={"User-Agent": "Mozilla/5.0"},
-            )
-            # CodeChef might redirect to home page if user not found, so check URL and title
-            return resp.status_code == 200 and username.lower() in str(resp.url).lower()
         except Exception:
             pass
     return False

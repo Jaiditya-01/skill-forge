@@ -28,7 +28,6 @@ class UserProfile(Document):
     github_username: str = ""
     leetcode_username: str = ""
     codeforces_username: str = ""
-    codechef_username: str = ""
 
     class Settings:
         name = "user_profiles"

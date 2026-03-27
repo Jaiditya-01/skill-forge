@@ -87,7 +87,7 @@ async def get_rivalry_dashboard(current_user: User = Depends(get_current_user)):
     
     my_stats = {
         "hard_solved": my_metrics.leetcode_hard if my_metrics else 0,
-        "total_solved": (my_metrics.leetcode_solved + my_metrics.codeforces_solved + my_metrics.codechef_solved) if my_metrics else 0,
+        "total_solved": (my_metrics.leetcode_solved + my_metrics.codeforces_solved) if my_metrics else 0,
         "github_commits": my_metrics.github_contributions if my_metrics else 0,
     }
 
@@ -97,7 +97,7 @@ async def get_rivalry_dashboard(current_user: User = Depends(get_current_user)):
         r_metrics = await get_latest_metrics(r_id)
         r_stats = {
             "hard_solved": r_metrics.leetcode_hard if r_metrics else 0,
-            "total_solved": (r_metrics.leetcode_solved + r_metrics.codeforces_solved + r_metrics.codechef_solved) if r_metrics else 0,
+            "total_solved": (r_metrics.leetcode_solved + r_metrics.codeforces_solved) if r_metrics else 0,
             "github_commits": r_metrics.github_contributions if r_metrics else 0,
         }
 

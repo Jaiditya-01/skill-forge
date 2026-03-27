@@ -6,8 +6,7 @@ from app.services.auth_service import get_current_user
 from app.services.platform_service import (
     verify_github_user,
     verify_leetcode_user,
-    verify_codeforces_user,
-    verify_codechef_user,
+    verify_codeforces_user
 )
 
 router = APIRouter(prefix="/api/profile", tags=["Profile"])
@@ -26,8 +25,7 @@ async def get_profile(current_user: User = Depends(get_current_user)):
         "user_id": str(profile.user_id),
         "github_username": profile.github_username,
         "leetcode_username": profile.leetcode_username,
-        "codeforces_username": profile.codeforces_username,
-        "codechef_username": profile.codechef_username,
+        "codeforces_username": profile.codeforces_username
     })
 
 
@@ -74,17 +72,6 @@ async def update_profile(
                 raise HTTPException(status_code=400, detail=f"Codeforces handle '{req.codeforces_username}' does not exist or failed verification")
         profile.codeforces_username = req.codeforces_username
 
-    # CodeChef
-    if req.codechef_username is not None and req.codechef_username != profile.codechef_username:
-        if req.codechef_username != "":
-            existing = await UserProfile.find_one({"codechef_username": req.codechef_username})
-            if existing and existing.user_id != current_user.id:
-                raise HTTPException(status_code=400, detail=f"CodeChef username '{req.codechef_username}' is already linked to another account")
-            is_valid = await verify_codechef_user(req.codechef_username)
-            if not is_valid:
-                raise HTTPException(status_code=400, detail=f"CodeChef username '{req.codechef_username}' does not exist or failed verification")
-        profile.codechef_username = req.codechef_username
-
     await profile.save()
 
     return SuccessResponse(message="Profile updated", data={
@@ -92,6 +79,5 @@ async def update_profile(
         "user_id": str(profile.user_id),
         "github_username": profile.github_username,
         "leetcode_username": profile.leetcode_username,
-        "codeforces_username": profile.codeforces_username,
-        "codechef_username": profile.codechef_username,
+        "codeforces_username": profile.codeforces_username
     })

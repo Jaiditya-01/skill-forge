@@ -10,8 +10,7 @@ const Settings = () => {
   const [profileData, setProfileData] = useState({
     github_username: '',
     leetcode_username: '',
-    codeforces_username: '',
-    codechef_username: ''
+    codeforces_username: ''
   });
 
   const [basicProfile, setBasicProfile] = useState({
@@ -42,8 +41,7 @@ const Settings = () => {
       setProfileData({
         github_username: profile.github_username || '',
         leetcode_username: profile.leetcode_username || '',
-        codeforces_username: profile.codeforces_username || '',
-        codechef_username: profile.codechef_username || ''
+        codeforces_username: profile.codeforces_username || ''
       });
     }
     if (user) {
@@ -210,17 +208,6 @@ const Settings = () => {
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-400 mb-2">CodeChef Username</label>
-                <input 
-                  type="text" 
-                  name="codechef_username"
-                  value={profileData.codechef_username}
-                  onChange={handleProfileChange}
-                  className="w-full glass-input bg-white/5" 
-                  placeholder="gennady"
-                />
-              </div>
             </div>
 
             <div className="flex justify-end">

@@ -13,8 +13,7 @@ import { format, parseISO } from 'date-fns';
 const COLORS = {
   LeetCode: '#fbbf24',    // Yellow
   Codeforces: '#60a5fa',  // Blue
-  GitHub: '#8b5cf6',      // Purple
-  CodeChef: '#10b981'     // Emerald
+  GitHub: '#8b5cf6'       // Purple
 };
 
 const ImprovementChart = ({ unifiedMetrics }) => {
@@ -47,12 +46,11 @@ const ImprovementChart = ({ unifiedMetrics }) => {
     date: `Day ${i + 1}`,
     LeetCode: Math.floor(Math.random() * 5),
     GitHub: Math.floor(Math.random() * 10),
-    Codeforces: Math.floor(Math.random() * 3),
-    CodeChef: Math.floor(Math.random() * 2)
+    Codeforces: Math.floor(Math.random() * 3)
   }));
 
   const finalData = chartData.length > 0 ? chartData : placeholderData;
-  const platforms = unifiedMetrics?.map(p => p.platform) || ['LeetCode', 'GitHub', 'Codeforces', 'CodeChef'];
+  const platforms = unifiedMetrics?.map(p => p.platform) || ['LeetCode', 'GitHub', 'Codeforces'];
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {

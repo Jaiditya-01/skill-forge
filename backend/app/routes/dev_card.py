@@ -73,7 +73,6 @@ async def get_dev_card(
                 metrics.github_daily or {},
                 metrics.leetcode_daily or {},
                 metrics.codeforces_daily or {},
-                metrics.codechef_daily or {},
             ]:
                 total += daily_dict.get(day_str, 0)
         activity_7d.append(total)

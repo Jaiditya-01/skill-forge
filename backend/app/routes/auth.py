@@ -132,8 +132,7 @@ async def get_me(current_user: User = Depends(get_current_user)):
             "profile": {
                 "github_username": profile.github_username if profile else "",
                 "leetcode_username": profile.leetcode_username if profile else "",
-                "codeforces_username": profile.codeforces_username if profile else "",
-                "codechef_username": profile.codechef_username if profile else "",
+                "codeforces_username": profile.codeforces_username if profile else ""
             },
         }
     )

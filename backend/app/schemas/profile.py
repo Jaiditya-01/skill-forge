@@ -6,7 +6,6 @@ class ProfileUpdateRequest(BaseModel):
     github_username: Optional[str] = None
     leetcode_username: Optional[str] = None
     codeforces_username: Optional[str] = None
-    codechef_username: Optional[str] = None
 
 
 class ProfileResponse(BaseModel):
@@ -15,4 +14,3 @@ class ProfileResponse(BaseModel):
     github_username: str
     leetcode_username: str
     codeforces_username: str
-    codechef_username: str

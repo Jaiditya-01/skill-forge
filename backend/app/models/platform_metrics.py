@@ -25,11 +25,6 @@ class PlatformMetrics(Document):
     codeforces_solved: Optional[int] = 0
     codeforces_daily: Optional[Dict[str, int]] = Field(default_factory=dict)
     codeforces_problem_ratings: Optional[Dict[str, int]] = Field(default_factory=dict)
-    
-    # CodeChef Metrics
-    codechef_rating: Optional[int] = 0
-    codechef_solved: Optional[int] = 0
-    codechef_daily: Optional[Dict[str, int]] = Field(default_factory=dict)
 
     class Settings:
         name = "platform_metrics"
