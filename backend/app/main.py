@@ -19,10 +19,10 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS — allow any localhost port so Vite's auto-increment ports (5173, 5174, …) always work
+# CORS — allow localhost and any Render deployment frontend URL
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex=r"http://(localhost|127\.0\.0\.1)(:\d+)?",
+    allow_origin_regex=r"http://(localhost|127\.0\.0\.1)(:\d+)?|https://.*\.onrender\.com",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
