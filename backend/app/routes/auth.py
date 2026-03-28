@@ -20,8 +20,8 @@ from fastapi import Depends
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 
 
-@router.post("/register", response_model=SuccessResponse)
-async def register(req: RegisterRequest):
+# Shared logic functions
+async def register_user(req: RegisterRequest):
     """Register a new user."""
     existing = await User.find_one(User.email == req.email)
     if existing:
@@ -75,8 +75,7 @@ async def register(req: RegisterRequest):
     )
 
 
-@router.post("/login", response_model=SuccessResponse)
-async def login(req: LoginRequest):
+async def login_user(req: LoginRequest):
     """Login and get access token."""
     user = await User.find_one(User.email == req.email)
     if not user or not verify_password(req.password, user.password_hash):
@@ -101,8 +100,7 @@ async def login(req: LoginRequest):
     )
 
 
-@router.get("/me", response_model=SuccessResponse)
-async def get_me(current_user: User = Depends(get_current_user)):
+async def get_user_me(current_user: User = Depends(get_current_user)):
     """Get current authenticated user info."""
     stats = await UserStats.find_one(UserStats.user_id == current_user.id)
     profile = await UserProfile.find_one(UserProfile.user_id == current_user.id)
@@ -138,8 +136,7 @@ async def get_me(current_user: User = Depends(get_current_user)):
     )
 
 
-@router.put("/me", response_model=SuccessResponse)
-async def update_me(req: UserUpdateRequest, current_user: User = Depends(get_current_user)):
+async def update_user_me(req: UserUpdateRequest, current_user: User = Depends(get_current_user)):
     """Update current user info."""
     if req.name is not None:
         current_user.name = req.name
@@ -178,3 +175,52 @@ async def update_me(req: UserUpdateRequest, current_user: User = Depends(get_cur
         "preferred_stack": current_user.preferred_stack,
         "internship_timeline": current_user.internship_timeline,
     })
+
+
+# Routes with /api/auth prefix
+@router.post("/register", response_model=SuccessResponse)
+async def register(req: RegisterRequest):
+    return await register_user(req)
+
+
+@router.post("/login", response_model=SuccessResponse)
+async def login(req: LoginRequest):
+    return await login_user(req)
+
+
+@router.get("/me", response_model=SuccessResponse)
+async def get_me(current_user: User = Depends(get_current_user)):
+    return await get_user_me(current_user)
+
+
+@router.put("/me", response_model=SuccessResponse)
+async def update_me(req: UserUpdateRequest, current_user: User = Depends(get_current_user)):
+    return await update_user_me(req, current_user)
+
+
+# ============= FALLBACK ROUTES (without /api prefix) for production compatibility =============
+fallback_router = APIRouter(prefix="/auth", tags=["Authentication - Fallback"])
+
+
+@fallback_router.post("/register", response_model=SuccessResponse)
+async def register_fallback(req: RegisterRequest):
+    """Fallback register endpoint without /api prefix."""
+    return await register_user(req)
+
+
+@fallback_router.post("/login", response_model=SuccessResponse)
+async def login_fallback(req: LoginRequest):
+    """Fallback login endpoint without /api prefix."""
+    return await login_user(req)
+
+
+@fallback_router.get("/me", response_model=SuccessResponse)
+async def get_me_fallback(current_user: User = Depends(get_current_user)):
+    """Fallback get me endpoint without /api prefix."""
+    return await get_user_me(current_user)
+
+
+@fallback_router.put("/me", response_model=SuccessResponse)
+async def update_me_fallback(req: UserUpdateRequest, current_user: User = Depends(get_current_user)):
+    """Fallback update me endpoint without /api prefix."""
+    return await update_user_me(req, current_user)

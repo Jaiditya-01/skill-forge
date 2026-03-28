@@ -22,7 +22,7 @@ app = FastAPI(
 # CORS — allow localhost and any Render deployment frontend URL
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex=r"http://(localhost|127\.0\.0\.1)(:\d+)?|https://.*\.onrender\.com",
+    allow_origin_regex=r"http://(localhost|127\.0\.0\.1)(:\d+)?$|https://.*\.onrender\.com$|https://skillforge.*\.onrender\.com$|http://(localhost|127\.0\.0\.1)(?::\d+)?$|http://localhost:5173|http://localhost:3000",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -43,7 +43,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 
 # Import and include routers
-from app.routes.auth import router as auth_router
+from app.routes.auth import router as auth_router, fallback_router as auth_fallback_router
 from app.routes.profile import router as profile_router
 from app.routes.tasks import router as tasks_router
 from app.routes.sync import router as sync_router
@@ -57,6 +57,7 @@ from app.routes.reminders import router as reminders_router
 from app.routes.dev_card import router as dev_card_router
 
 app.include_router(auth_router)
+app.include_router(auth_fallback_router)
 app.include_router(profile_router)
 app.include_router(tasks_router)
 app.include_router(sync_router)
