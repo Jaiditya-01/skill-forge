@@ -21,8 +21,7 @@ const DevCardGenerator = () => {
   // URLs — route accepts both /name and /name.svg — we use no extension to avoid encoding edge-cases
   const cardUrl  = `${API_BASE}/api/cards/${encodeURIComponent(username)}?theme=${theme}`;
   const previewUrl = `${cardUrl}&t=${Date.now()}`; // Bypass local browser caching for live preview
-  const profileUrl = `http://localhost:5173/dashboard`; // update to production URL when deployed
-  
+  const profileUrl = `${window.location.origin}/dashboard`;
   // GitHub Markdown snippet
   const markdownSnippet = `[![SkillForge Dev Card](${cardUrl})](${profileUrl})`;
 
