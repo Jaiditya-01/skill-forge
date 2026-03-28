@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Copy, Check, CreditCard, ExternalLink } from 'lucide-react';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, '');
 
 const THEMES = [
   { id: 'dark',   label: '🌙 Dark',   desc: 'GitHub-native dark' },
