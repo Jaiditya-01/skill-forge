@@ -11,7 +11,7 @@ router = APIRouter(prefix="/api/skills", tags=["Skills"])
 
 class SkillCreateRequest(BaseModel):
     skill_name: str
-    category: str = "DSA"  # "DSA" or "Project"
+    category: str = "DSA" 
     proficiency_score: int = 1
 
 
@@ -134,6 +134,7 @@ async def recommend_skills(current_user: User = Depends(get_current_user)):
             if not set(current_user.interests).intersection(set(peer.interests)):
                 continue
         # Check higher level
+        # Ranking in Leaderboard
         peer_stats = await UserStats.find_one(UserStats.user_id == peer.id)
         if peer_stats and peer_stats.current_level > my_level:
             peer_ids.append(peer.id)

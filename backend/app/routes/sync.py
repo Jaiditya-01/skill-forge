@@ -82,7 +82,7 @@ async def sync_profiles(current_user: User = Depends(get_current_user)):
         },
     )
 
-
+# Git Hub was giving error.
 @router.get("/metrics", response_model=SuccessResponse)
 async def get_metrics(
     days: int = 30,
@@ -182,7 +182,7 @@ async def get_unified_metrics(
     unified_data.append({
         "platform": "GitHub",
         "username": profile.github_username,
-        "maxRating": 0, # not applicable
+        "maxRating": 0, # not applicable for GitHub
         "problemsSolved": {
             "Contributions": latest.github_contributions if latest else 0 
         },
@@ -191,4 +191,3 @@ async def get_unified_metrics(
     })
 
     return SuccessResponse(data=unified_data)
-

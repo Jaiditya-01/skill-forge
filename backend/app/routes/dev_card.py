@@ -12,6 +12,7 @@ from app.models.platform_metrics import PlatformMetrics
 from app.services.svg_template import generate_svg
 import re
 
+#For Hosted URL
 router = APIRouter(prefix="/api/cards", tags=["Dev Card"])
 
 
@@ -95,6 +96,7 @@ async def get_dev_card(
     # ── 4. Render SVG and respond ────────────────────────────────────────────
     svg_content = generate_svg(data, theme)
 
+    # GITHUB Graph
     return Response(
         content=svg_content,
         media_type="image/svg+xml",

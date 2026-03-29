@@ -15,7 +15,7 @@ async def trigger_reminders(background_tasks: BackgroundTasks):
     """
     cutoff = datetime.utcnow() - timedelta(days=3)
 
-    # Find users with last activity older than 3 days or no activity at all
+    # Find users with last activity older than 3 days or no activity at all, that student can be removed from database
     inactive_stats = await UserStats.find(
         {"$or": [
             {"last_activity_date": {"$lt": cutoff}},

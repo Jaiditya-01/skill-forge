@@ -74,7 +74,7 @@ async def register_user(req: RegisterRequest):
         },
     )
 
-
+#Normal User Login
 async def login_user(req: LoginRequest):
     """Login and get access token."""
     user = await User.find_one(User.email == req.email)
